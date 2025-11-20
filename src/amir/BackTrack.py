@@ -57,7 +57,7 @@ def placeQueens(row, mat, result, times, record_times, t0):
 
 
 # Function to find all solutions
-def backtracking(n, record_times=False, start_time=None):
+def backtrackingAlgo(n, record_times=False, start_time=None):
     """
     If record_times == False  -> returns [solutions]
     If record_times == True   -> returns (solutions, times)
@@ -76,19 +76,3 @@ def backtracking(n, record_times=False, start_time=None):
     if record_times:
         return result, times
     return result
-
-
-if __name__ == "__main__":
-    n = 4
-
-    # just solutions (like your original new code)
-    solutions_only = backtracking(n)
-    for ans in solutions_only:
-        print("Solution:", " ".join(map(str, ans)))
-
-    print("\nWith times:\n")
-
-    # solutions + times (like your old backtracking)
-    solutions, times = backtracking(n, record_times=True)
-    for i, (sol, t) in enumerate(zip(solutions, times), start=1):
-        print(f"{i}: {' '.join(map(str, sol))}  (found at {t:.6f}s)")

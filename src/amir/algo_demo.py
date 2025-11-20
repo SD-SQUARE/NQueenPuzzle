@@ -2,6 +2,7 @@
 import random
 from CulturalAlgorithm import cultural_algorithm
 from BestFirst import BestFirst
+from BackTrack import backtrackingAlgo
 from hillclimb import hill_climb
 import globals as g
 
@@ -23,55 +24,19 @@ def backtracking(n, record_times=False, start_time=None):
     If record_times == True   -> returns (solutions, times)
         where times[i] is the time (sec) when solution i was found
     """
-    g.cancel_flag = False
 
-    solutions = []
-    times = []
-
-    t0 = start_time if start_time is not None else time.perf_counter()
-
-    def place(col, cur, rows, d1, d2):
-        if g.cancel_flag:
-            return
-
-        if col > n:
-            sol = cur.copy()
-            solutions.append(sol)
-            if record_times:
-                times.append(time.perf_counter() - t0)  # Time for this solution
-            return
-
-        for r in range(1, n + 1):
-            if g.cancel_flag:
-                return
-
-            if r in rows or (r - col) in d1 or (r + col) in d2:
-                continue
-
-            cur.append(r)
-            rows.add(r)
-            d1.add(r - col)
-            d2.add(r + col)
-
-            place(col + 1, cur, rows, d1, d2)
-
-            cur.pop()
-            rows.remove(r)
-            d1.remove(r - col)
-            d2.remove(r + col)
-
-    place(1, [], set(), set(), set())
-
+    solutions, times = backtrackingAlgo(n, record_times=True)
+ 
     if record_times:
         return solutions, times  # Return both solutions and times for each solution
+    
     return solutions
+
+
 
 # =========================
 # Helpers for meta-heuristics
 # =========================
-def random_board(n):
-    """Create random board: list of rows [1..n] for each column."""
-    return [random.randint(1, n) for _ in range(n)]
 
 
 def heuristic(board):
