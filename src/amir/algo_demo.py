@@ -6,20 +6,39 @@ import globals as g
 # =========================
 # 1) BACKTRACKING (exact)
 # =========================
-def backtracking(n):
-    res = []
-    g.cancel_flag = False  # reset cancel flag
+import time
+import globals as g
+
+# algo_demo.py
+
+import time
+import globals as g
+
+def backtracking(n, record_times=False, start_time=None):
+    """
+    If record_times == False  -> returns [solutions]
+    If record_times == True   -> returns (solutions, times)
+        where times[i] is the time (sec) when solution i was found
+    """
+    g.cancel_flag = False
+
+    solutions = []
+    times = []
+
+    t0 = start_time if start_time is not None else time.perf_counter()
 
     def place(col, cur, rows, d1, d2):
         if g.cancel_flag:
             return
 
         if col > n:
-            res.append(cur.copy())
+            sol = cur.copy()
+            solutions.append(sol)
+            if record_times:
+                times.append(time.perf_counter() - t0)  # Time for this solution
             return
 
         for r in range(1, n + 1):
-            print("---help---")
             if g.cancel_flag:
                 return
 
@@ -39,8 +58,10 @@ def backtracking(n):
             d2.remove(r + col)
 
     place(1, [], set(), set(), set())
-    return res
 
+    if record_times:
+        return solutions, times  # Return both solutions and times for each solution
+    return solutions
 
 # =========================
 # Helpers for meta-heuristics

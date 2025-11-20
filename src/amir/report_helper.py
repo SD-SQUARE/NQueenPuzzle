@@ -1,115 +1,219 @@
 # report_helper.py
 import threading
 import time
-import tkinter as tk   # for Toplevel
+import tkinter as tk
+
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 import globals as g
 import constants
 import algo_demo
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+
+
+results_lock = threading.Lock()
+
+
+# run backtracking algo once ===> each solution with its time
+def _run_backtracking_once(n: int):
+    start_time = time.perf_counter()
+    solutions, solution_times = algo_demo.backtracking(
+        n, record_times=True, start_time=start_time
+    )
+
+    with results_lock:
+        g.algorithm_results[constants.ALGO_BACKTRACKING]["solutions"].extend(solutions)
+        g.algorithm_results[constants.ALGO_BACKTRACKING]["times"].extend(solution_times)
+
+
+def _run_meta_single(strategy: str, n: int):
+    """Run a meta-heuristic algorithm once and record its total runtime."""
+    start_time = time.perf_counter()
+
+    if strategy == constants.ALGO_BEST_FIRST:
+        sol = algo_demo.best_first(n)
+    elif strategy == constants.ALGO_HILL_CLIMB:
+        sol = algo_demo.hill_climbing(n)
+    elif strategy == constants.ALGO_CULTURAL:
+        sol = algo_demo.cultural(n)
+    else:
+        sol = []
+
+    end_time = time.perf_counter()
+    dt = end_time - start_time
+
+    if sol:
+        with results_lock:
+            g.algorithm_results[strategy]["solutions"].append(sol)
+            g.algorithm_results[strategy]["times"].append(dt)
 
 
 def start_report(root):
-    """Start running all algorithms in a background thread."""
-    if g.is_reporting:   # avoid double-click spam
-        return
+    """
+    Called from UI.
+    - Backtracking: 1 thread (multiple solutions with their times)
+    - Best-first, Hill-climb, Cultural: n threads each (each run = 1 thread)
+    - All threads start in parallel, and we join them in a watcher thread.
+    """
+    if getattr(g, "is_reporting", False):
+        return  # avoid double-click spam
 
     g.cancel_flag = False
     g.is_reporting = True
-    g.report_data = {}
 
-    if g.status_var is not None:
+    # reset results
+    for k in g.algorithm_results:
+        g.algorithm_results[k]["solutions"].clear()
+        g.algorithm_results[k]["times"].clear()
+
+    if g.status_var:
         g.status_var.set("Running report...")
     root.config(cursor="watch")
     root.update_idletasks()
 
-    n = int(g.n_var.get())
+    n = int(g.n_var.get())  # board size, also number of runs for meta algos
 
-    def worker():
-        # map algo name -> function (same as in solve)
-        algo_map = {
-            constants.ALGO_BACKTRACKING: algo_demo.backtracking,
-            constants.ALGO_BEST_FIRST:   algo_demo.best_first,
-            constants.ALGO_HILL_CLIMB:   algo_demo.hill_climbing,
-            constants.ALGO_CULTURAL:     algo_demo.cultural,
-        }
+    strategies_meta = [
+        constants.ALGO_BEST_FIRST,
+        constants.ALGO_HILL_CLIMB,
+        constants.ALGO_CULTURAL,
+    ]
 
-        for name, func in algo_map.items():
-            if g.cancel_flag:
-                break
+    threads = []
 
-            t0 = time.perf_counter()
-            sols = func(n)          # heavy work
-            t1 = time.perf_counter()
+    # ---- Backtracking: single thread ----
+    t_back = threading.Thread(
+        target=_run_backtracking_once,
+        args=(n,),
+        daemon=True,
+    )
+    threads.append(t_back)
 
-            g.report_data[name] = {
-                "time": t1 - t0,
-                "solutions": len(sols),
-            }
+    # ---- Meta-heuristics: n runs -> n threads per algorithm ----
+    for strategy in strategies_meta:
+        for _ in range(n):
+            t = threading.Thread(
+                target=_run_meta_single,
+                args=(strategy, n),
+                daemon=True,
+            )
+            threads.append(t)
 
-        g.is_reporting = False
+    # ---- Start all threads in parallel ----
+    for t in threads:
+        t.start()
 
-        # back to main thread: show report window & reset UI
+    # ---- Join all threads in a watcher so UI doesn't freeze ----
+    def watcher():
+        for t in threads:
+            t.join()
+
         def finish_ui():
             root.config(cursor="")
-            if g.cancel_flag:
-                if g.status_var is not None:
-                    g.status_var.set("Report cancelled")
-            else:
-                if g.status_var is not None:
-                    g.status_var.set("Report done")
-                show_report_window(root)
+            g.is_reporting = False
+            if g.status_var:
+                g.status_var.set("Report done")
+            show_report_window(root, n)
 
         root.after(0, finish_ui)
 
-    threading.Thread(target=worker, daemon=True).start()
+    threading.Thread(target=watcher, daemon=True).start()
 
 
-def show_report_window(root):
-    """Open a new window and plot time vs solutions for each algorithm."""
-
-    if not g.report_data:
+def show_report_window(root, n: int):
+    """
+    UI like the simple script:
+      - X: time consumed (seconds)
+      - Y: solution count / run index
+      - Colors: r, b, y, m
+      - Title: 'Algorithm Performance: Solutions vs Time for n = {n}'
+    Embedded into a Tk Toplevel using FigureCanvasTkAgg.
+    Also includes a 15-minute MM:SS timer specific to this window.
+    """
+    # if no data, do nothing
+    if not any(g.algorithm_results[alg]["times"] for alg in g.algorithm_results):
         return
 
     win = tk.Toplevel(root)
     win.title("N-Queen Report: Solutions vs Time")
-    win.configure(bg="black")
 
-    # Prepare data
-    algo_names = []
-    times = []
-    sol_counts = []
-    colors = []
+    # =======================
+    # 15-MIN TIMER (LOCAL, MM:SS)
+    # =======================
+    timer_label = tk.Label(win, text="15:00", font=("Arial", 12))
+    timer_label.pack(pady=5)
 
-    for name in constants.ALGO_LIST:
-        data = g.report_data.get(name)
+    remaining_seconds = 15 * 60  # 15 minutes
+
+    def update_timer():
+        nonlocal remaining_seconds
+        # Stop updating if window is closed
+        if not win.winfo_exists():
+            return
+
+        mins = remaining_seconds // 60
+        secs = remaining_seconds % 60
+        timer_label.config(text=f"{mins:02d}:{secs:02d}")
+
+        if remaining_seconds <= 0:
+            return
+
+        remaining_seconds -= 1
+        # Schedule next update in 1,000 ms (1 second)
+        win.after(1000, update_timer)
+
+    # Start the timer for this report window
+    update_timer()
+
+    # =======================
+    # PLOTTING AREA
+    # =======================
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    strategies = [
+        constants.ALGO_BACKTRACKING,
+        constants.ALGO_BEST_FIRST,
+        constants.ALGO_HILL_CLIMB,
+        constants.ALGO_CULTURAL,
+    ]
+
+    # Same colors as your simple script
+    strategy_colors = {
+        constants.ALGO_BACKTRACKING: 'r',  # Red
+        constants.ALGO_BEST_FIRST:   'b',  # Blue
+        constants.ALGO_HILL_CLIMB:   'y',  # Yellow
+        constants.ALGO_CULTURAL:     'm',  # Magenta
+    }
+
+    for strategy in strategies:
+        data = g.algorithm_results.get(strategy)
         if not data:
             continue
-        algo_names.append(name)
-        times.append(data["time"])
-        sol_counts.append(data["solutions"])
-        colors.append(constants.ALGO_COLORS.get(name, "white"))
 
-    fig, ax = plt.subplots(figsize=(5, 4))
-    ax.set_facecolor("black")
-    fig.patch.set_facecolor("black")
+        times = data["times"]
+        solutions = data["solutions"]
 
-    # scatter points
-    ax.scatter(times, sol_counts, s=80)
+        # We only care about times for plotting
+        if not times:
+            continue
 
-    # color each point and add labels
-    for x, y, name, c in zip(times, sol_counts, algo_names, colors):
-        ax.scatter(x, y, s=80, color=c)
-        ax.text(x, y, f" {name}", color="white", fontsize=8, va="bottom")
+        color = strategy_colors.get(strategy, 'k')
 
-    ax.set_xlabel("time consumed (seconds)", color="orange")
-    ax.set_ylabel("solutions", color="lime")
-    ax.tick_params(colors="white")
-    for spine in ax.spines.values():
-        spine.set_color("white")
+        # Just like your script: y = 1..len(times)
+        for idx, time_taken in enumerate(times):
+            ax.scatter(time_taken, idx + 1, color=color, alpha=0.7, marker='o')
 
-    # embed in Tkinter
+        # Legend entry
+        ax.scatter([], [], color=color, label=strategy)
+
+    ax.set_title(f'Algorithm Performance: Solutions vs Time for n = {n}', fontsize=14)
+    ax.set_xlabel('Time Consumed (seconds)', fontsize=12)
+    ax.set_ylabel('Solution Count', fontsize=12)
+
+    ax.legend(title="Algorithms", fontsize=10, loc='upper left')
+    ax.grid(True)
+
     canvas = FigureCanvasTkAgg(fig, master=win)
     canvas.draw()
     canvas.get_tk_widget().pack(fill="both", expand=True)

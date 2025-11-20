@@ -5,6 +5,8 @@ SPLASH_TIME = 3000  # milliseconds = 3 seconds
 QUEEN_IMAGE = "src/amir/queen_icon.jpg"
 FIXED_IMAGE_SIZE = 200
 
+QUEEN_LOGO = "♛"
+
 # Color codes
 MAIN_COLOR = "#19355a"
 SECONDARY_COLOR = "#b38e19"

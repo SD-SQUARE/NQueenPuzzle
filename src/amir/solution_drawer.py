@@ -2,6 +2,7 @@ import globals as g
 import board_drawer 
 import constants
 
+# [1,2,4,3]
 def draw_solution(sol):
     board_drawer.draw_board(len(sol))
     cell = 50
@@ -10,7 +11,7 @@ def draw_solution(sol):
     for c, r in enumerate(sol):
         x = margin + (c * cell) + cell/2
         y = margin + ((r-1) * cell) + cell/2
-        g.canvas.create_text(x, y, text="♛",
+        g.canvas.create_text(x, y, text=constants.QUEEN_LOGO,
                            fill= constants.SECONDARY_COLOR,
                            font=("Comic Sans MS", 28, "bold"))
 
