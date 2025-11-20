@@ -2,6 +2,7 @@
 import random
 from CulturalAlgorithm import cultural_algorithm
 from BestFirst import BestFirst
+from hillclimb import hill_climb
 import globals as g
 
 
@@ -121,9 +122,8 @@ def best_first(n, max_iter=5000):
     solver = BestFirst()
     solution = solver.solve(n)
 
-    solution = [x + 1 for x in solution]
-
     if solution:
+        solution = [x + 1 for x in solution]
         return [solution]
 
     # no solution found
@@ -135,35 +135,19 @@ def best_first(n, max_iter=5000):
 # =========================
 def hill_climbing(n, max_steps=1000, restarts=20):
     """
-    Simple hill-climbing with random restarts.
+    Simple hill-climbing.
     Returns [solution] or [].
     """
     g.cancel_flag = False
 
-    for _ in range(restarts):
-        if g.cancel_flag:
-            return []
+    state, board, elapsed = hill_climb(n)
 
-        current = random_board(n)
-        current_h = heuristic(current)
+    print("state ====>", state)
 
-        steps = 0
-        while steps < max_steps and current_h > 0 and not g.cancel_flag:
-            neighbors = generate_neighbors(current)
-            # pick neighbor with best (lowest) heuristic
-            best_neighbor = min(neighbors, key=heuristic)
-            best_h = heuristic(best_neighbor)
-
-            # if no improvement -> local optimum
-            if best_h >= current_h:
-                break
-
-            current, current_h = best_neighbor, best_h
-            steps += 1
-
-        if current_h == 0:
-            return [current]
-
+    if state.any():
+        state = [x + 1 for x in state]
+        return [state]
+    
     return []
 
 
