@@ -1,13 +1,15 @@
+
+QUEEN_LOGO = "♛"
+
 # times
 SPLASH_TIME = 3000  # milliseconds = 3 seconds
 
+# times to run the algos for reporting
 N_Times = 2
 
 # images
-QUEEN_IMAGE = "src/amir/queen_icon.jpg"
+QUEEN_IMAGE = "src/code/queen_icon.jpg"
 FIXED_IMAGE_SIZE = 200
-
-QUEEN_LOGO = "♛"
 
 # Color codes
 MAIN_COLOR = "#19355a"
@@ -28,12 +30,10 @@ ALGO_LIST = [
     ALGO_CULTURAL
 ]
 
-
 # board panel
 DEFAULT_BOARD_PANEL_NUM = 4
 
 N_VALUES = ["4", "5", "6", "7", "8"]
-
 
 ALGO_COLORS = {
     ALGO_BACKTRACKING: "red",

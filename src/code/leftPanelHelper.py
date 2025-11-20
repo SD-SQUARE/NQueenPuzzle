@@ -16,8 +16,6 @@ def generate_left_panel(parent, root):
 
     create_solve_button(left, root)
 
-    create_cancel_button(left)
-
     create_status_label(left)
 
     create_report_button(left, root)
@@ -72,16 +70,6 @@ def create_solve_button(left, root):
         fg="white",
         bg=constants.SECONDARY_COLOR,
     ).pack(pady=20)
-
-def create_cancel_button(left):
-    tk.Button(
-        left,
-        text="Cancel",
-        command=NQueenSolver.cancel_operation,
-        fg="white",
-        bg="red",
-    ).pack(pady=5)
-
 
 def create_report_button(left, root):
     tk.Button(
