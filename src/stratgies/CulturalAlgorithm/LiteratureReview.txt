@@ -1,1 +1,0 @@
-https://www.academia.edu/41236524/Solving_N_Queens_Problem_Using_Subproblems_based_on_Genetic_Algorithm
