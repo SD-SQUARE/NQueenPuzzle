@@ -1,6 +1,7 @@
 # algo_demo.py
 import random
 from CulturalAlgorithm import cultural_algorithm
+from BestFirst import BestFirst
 import globals as g
 
 
@@ -117,44 +118,13 @@ def best_first(n, max_iter=5000):
     """
     g.cancel_flag = False
 
-    start = random_board(n)
-    start_h = heuristic(start)
+    solver = BestFirst()
+    solution = solver.solve(n)
 
-    # if already solution
-    if start_h == 0:
-        return [start]
+    solution = [x + 1 for x in solution]
 
-    open_list = [(start_h, start)]
-    visited = set()
-    iterations = 0
-
-    while open_list:
-        if g.cancel_flag:
-            return []
-
-        # sort by heuristic (smallest first)
-        open_list.sort(key=lambda x: x[0])
-        h, board = open_list.pop(0)
-
-        key = tuple(board)
-        if key in visited:
-            continue
-        visited.add(key)
-
-        if h == 0:  # found solution
-            return [board]
-
-        iterations += 1
-        if iterations > max_iter:
-            break
-
-        for nb in generate_neighbors(board):
-            if g.cancel_flag:
-                return []
-            k = tuple(nb)
-            if k in visited:
-                continue
-            open_list.append((heuristic(nb), nb))
+    if solution:
+        return [solution]
 
     # no solution found
     return []
