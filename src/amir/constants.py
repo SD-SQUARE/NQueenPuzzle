@@ -1,6 +1,8 @@
 # times
 SPLASH_TIME = 3000  # milliseconds = 3 seconds
 
+N_Times = 2
+
 # images
 QUEEN_IMAGE = "src/amir/queen_icon.jpg"
 FIXED_IMAGE_SIZE = 200

@@ -39,7 +39,7 @@ def solve(root):
         end_time = time.perf_counter()
 
     elif strategy == constants.ALGO_CULTURAL:
-        g.solutions = algo_demo.cultural(n)
+        g.solutions = algo_demo.cultural(n, start_time)
         end_time = time.perf_counter()
 
     else:

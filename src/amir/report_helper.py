@@ -36,7 +36,7 @@ def _run_meta_single(strategy: str, n: int):
     elif strategy == constants.ALGO_HILL_CLIMB:
         sol = algo_demo.hill_climbing(n)
     elif strategy == constants.ALGO_CULTURAL:
-        sol = algo_demo.cultural(n)
+        sol = algo_demo.cultural(n, start_time)
     else:
         sol = []
 
@@ -92,7 +92,7 @@ def start_report(root):
 
     # ---- Meta-heuristics: n runs -> n threads per algorithm ----
     for strategy in strategies_meta:
-        for _ in range(n):
+        for _ in range(constants.N_Times):
             t = threading.Thread(
                 target=_run_meta_single,
                 args=(strategy, n),
@@ -137,34 +137,6 @@ def show_report_window(root, n: int):
 
     win = tk.Toplevel(root)
     win.title("N-Queen Report: Solutions vs Time")
-
-    # =======================
-    # 15-MIN TIMER (LOCAL, MM:SS)
-    # =======================
-    timer_label = tk.Label(win, text="15:00", font=("Arial", 12))
-    timer_label.pack(pady=5)
-
-    remaining_seconds = 15 * 60  # 15 minutes
-
-    def update_timer():
-        nonlocal remaining_seconds
-        # Stop updating if window is closed
-        if not win.winfo_exists():
-            return
-
-        mins = remaining_seconds // 60
-        secs = remaining_seconds % 60
-        timer_label.config(text=f"{mins:02d}:{secs:02d}")
-
-        if remaining_seconds <= 0:
-            return
-
-        remaining_seconds -= 1
-        # Schedule next update in 1,000 ms (1 second)
-        win.after(1000, update_timer)
-
-    # Start the timer for this report window
-    update_timer()
 
     # =======================
     # PLOTTING AREA

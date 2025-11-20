@@ -1,5 +1,6 @@
 # algo_demo.py
 import random
+from CulturalAlgorithm import cultural_algorithm
 import globals as g
 
 
@@ -199,50 +200,15 @@ def hill_climbing(n, max_steps=1000, restarts=20):
 # =========================
 # 4) "CULTURAL" (simple evolutionary search)
 # =========================
-def cultural(n, population_size=30, generations=200, mutation_rate=0.2):
+def cultural(n,time, population_size=30, generations=200, mutation_rate=0.2):
     """
     Simple evolutionary-like search (not a full academic cultural algorithm,
     but good as a 'cultural' demo).
     Returns [solution] or [].
     """
-    g.cancel_flag = False
-
-    # init population
-    population = [random_board(n) for _ in range(population_size)]
-
-    for gen in range(generations):
-        if g.cancel_flag:
-            return []
-
-        # evaluate population
-        scored = [(heuristic(b), b) for b in population]
-        scored.sort(key=lambda x: x[0])
-
-        best_h, best_board = scored[0]
-        if best_h == 0:
-            return [best_board]
-
-        # belief (best part of population)
-        elite_count = max(2, population_size // 3)
-        elites = [b for _, b in scored[:elite_count]]
-
-        # create new population from elites with mutation
-        new_population = elites.copy()
-
-        while len(new_population) < population_size:
-            if g.cancel_flag:
-                return []
-
-            parent = random.choice(elites)
-            child = parent.copy()
-
-            if random.random() < mutation_rate:
-                # mutate: move a queen in a random column
-                col = random.randint(0, n - 1)
-                child[col] = random.randint(1, n)
-
-            new_population.append(child)
-
-        population = new_population
+    solution, gen, time = cultural_algorithm(n, time, population_size= 50, time_limit_seconds=60) # one-minute limit
+    
+    if solution:
+        return [solution]
 
     return []  # no solution found
