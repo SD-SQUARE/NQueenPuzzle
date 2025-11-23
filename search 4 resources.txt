@@ -1,0 +1,5 @@
+https://www.geeksforgeeks.org/artificial-intelligence/introduction-hill-climbing-artificial-intelligence/
+https://www.datacamp.com/tutorial/hill-climbing-algorithm-for-ai-in-python
+https://futurense.com/blog/hill-climbing-in-ai
+https://digitaldefynd.com/IQ/pros-cons-of-hill-climbing-algorithm/
+Hill climbing is a foundational and straightforward heuristic optimization technique that iteratively improves solutions by small local changes. Its strengths lie in simplicity and efficiency, making it practical for many real-time and combinatorial optimization tasks. However, its weakness is in getting trapped in local optima or flat regions due to purely greedy moves without backtracking or exploration. To address this, variants and hybrid methods like random restarts or simulated annealing are commonly employed to improve robustness and solution quality in more complex domains. Overall, hill climbing is a useful tool for quick and approximate optimization, especially when global optimality is computationally expensive or unnecessary
