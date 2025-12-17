@@ -5,7 +5,7 @@ QUEEN_LOGO = "♛"
 SPLASH_TIME = 3000  # milliseconds = 3 seconds
 
 # times to run the algos for reporting
-N_Times = 2
+N_Times = 4
 
 # images
 QUEEN_IMAGE = "src/code/queen_icon.jpg"

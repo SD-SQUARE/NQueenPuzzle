@@ -80,6 +80,9 @@ class BestFirst:
             if h == 0:
                 self.time_taken = time.time() - start_time
                 self.solutions.append(current)
+                print("\nBest-First Search Results:")
+                print(f"Number of Queens : {N}")
+                print(f"Total time taken : {self.time_taken:.6f} seconds")
                 return current
 
             for child in self.generate_children(current):
@@ -88,6 +91,8 @@ class BestFirst:
                     heapq.heappush(pq, (self.heuristic(child), child))
 
         self.time_taken = time.time() - start_time
+        print("\nBest-First Search Results:")
+        print("No solution found")
         return None
 
     # ---------------------------------------------------------------

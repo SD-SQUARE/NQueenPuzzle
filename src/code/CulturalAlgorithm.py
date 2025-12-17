@@ -107,6 +107,7 @@ def cultural_algorithm(n,time, population_size = 100, time_limit_seconds = 60):
         #check if best_fitness is the perfect score
         if best_fitness == perfect_score:
             elapsed = time - start_time
+            print("\nCultural Algorithm Results(0):")
             print(f"\nPerfect solution found at generation {gen}")
             print(f"Number of Queens : {n}")
             print(f"Total time taken : {elapsed:.6f} seconds")
@@ -135,5 +136,10 @@ def cultural_algorithm(n,time, population_size = 100, time_limit_seconds = 60):
 
     # finished due to time limit
     elapsed = time - start_time
+    print("\nCultural Algorithm Results(1):")
+    print(f"\nBest solution found after time limit:")
+    print(f"Number of Queens : {n}")
+    print(f"Time taken : {elapsed:.6f} seconds")
+
     return belief['best_solution']
 

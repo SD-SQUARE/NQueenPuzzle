@@ -73,6 +73,9 @@ def backtrackingAlgo(n, record_times=False, start_time=None):
     # Place queens
     placeQueens(0, mat, result, times, record_times, t0)
 
+    print("\nBacktracking Results:")
+    print(f"Number of Queens : {n}")
+    print(f"Total time taken : {time.perf_counter() - t0:.6f} seconds")
     if record_times:
         return result, times
     return result

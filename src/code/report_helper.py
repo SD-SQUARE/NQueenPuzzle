@@ -43,9 +43,15 @@ def _run_meta_single(strategy: str, n: int):
     end_time = time.perf_counter()
     dt = end_time - start_time
 
+    print(f"\n{strategy} single run results: Number of Queens : {n}, Total time taken : {dt:.6f} seconds, solution ====> {sol}")
+
     if sol:
         with results_lock:
             g.algorithm_results[strategy]["solutions"].append(sol)
+            g.algorithm_results[strategy]["times"].append(dt)
+    else:
+        with results_lock:
+            g.algorithm_results[strategy]["solutions"].append(None)
             g.algorithm_results[strategy]["times"].append(dt)
 
 
@@ -96,7 +102,7 @@ def start_report(root):
             t = threading.Thread(
                 target=_run_meta_single,
                 args=(strategy, n),
-                daemon=True,
+                daemon=False,
             )
             threads.append(t)
 
@@ -107,7 +113,11 @@ def start_report(root):
     # ---- Join all threads in a watcher so UI doesn't freeze ----
     def watcher():
         for t in threads:
-            t.join()
+            t.join(timeout=10)
+
+        alive = [t for t in threads if t.is_alive()]
+        if alive:
+            print("⚠ Some threads did not finish:", len(alive))
 
         def finish_ui():
             root.config(cursor="")
@@ -189,3 +199,4 @@ def show_report_window(root, n: int):
     canvas = FigureCanvasTkAgg(fig, master=win)
     canvas.draw()
     canvas.get_tk_widget().pack(fill="both", expand=True)
+    plt.close(fig)

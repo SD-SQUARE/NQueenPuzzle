@@ -66,7 +66,7 @@ def solve(root):
 
     board_drawer.draw_board(n)
 
-    # ✅ done → restore cursor & loader text
+    # done => restore cursor & loader text
     root.config(cursor="")
     if g.status_var is not None:
         g.status_var.set(f"Done: {len(g.solutions)} solution(s)")

@@ -66,6 +66,9 @@ def hill_climb(
             cur_obj = objective(state)
             if cur_obj == 0:
                 elapsed = perf_counter() - start_time
+                print("\nHill Climbing Results:")
+                print(f"Number of Queens : {N}")
+                print(f"Total time taken : {elapsed:.6f} seconds")
                 return state, board_from_state(state), elapsed
 
             neigh_state, neigh_obj = best_neighbor(state)
@@ -92,4 +95,6 @@ def hill_climb(
             else:
                 break
     elapsed = perf_counter() - start_time
+    print("\nHill Climbing Results:")
+    print("No solution found")
     return None, None, elapsed

@@ -126,7 +126,11 @@ def cultural(n,time, population_size=30, generations=200, mutation_rate=0.2):
     Returns [solution] or [].
     """
     solution, gen, time = cultural_algorithm(n, time, population_size= 50, time_limit_seconds=60) # one-minute limit
-    
+    print(f"\nCultural Algorithm Results(2):")
+    print(f"Number of Queens : {n}")
+    print(f"Total time taken : {time:.6f} seconds")
+    print("solution ====>", solution)
+
     if solution:
         return [solution]
 
